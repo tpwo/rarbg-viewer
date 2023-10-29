@@ -5,9 +5,9 @@ import sqlite3
 from sqlite3 import Connection
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
 from fastapi import Request
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 
 DB_DIR = 'db'
@@ -38,7 +38,7 @@ def initialize_db(db_file: str) -> Connection:
 
 app = FastAPI()
 CONN = get_connection(DB_FILE)
-app.mount('/www', StaticFiles(directory='www', html=True), 'www')
+app.mount('/static', StaticFiles(directory='static', html=True), 'static')
 
 
 @app.get('/')
@@ -52,12 +52,12 @@ def index(request: Request) -> RedirectResponse:
     return RedirectResponse(url=f'/www/index.html{query}', status_code=302)
 
 
-@app.get('/search')
-def get_count(query) -> object:
+@app.get('/results')
+def get_count(search_query) -> object:
     with CONN as conn:
         cursor = conn.cursor()
         query_str = 'SELECT title, cat, dt FROM items WHERE title LIKE ? LIMIT 100'
-        cursor.execute(query_str, (like_str(query),))
+        cursor.execute(query_str, (like_str(search_query),))
         return {'result': cursor.fetchall()}
 
 

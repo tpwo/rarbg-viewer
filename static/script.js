@@ -13,7 +13,7 @@
 
     async function search() {
         var query = document.getElementById('search-box').value
-        await visitUrl(`../search?query=${query}`);
+        await visitUrl(`../results?search_query=${query}`);
     }
 
     async function visitUrl(url) {
