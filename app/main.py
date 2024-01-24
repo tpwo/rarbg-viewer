@@ -5,10 +5,9 @@ import sqlite3
 from sqlite3 import Connection
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
 from fastapi import Request
-from fastapi.responses import HTMLResponse, FileResponse, Response
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 
 DB_DIR = 'db'
