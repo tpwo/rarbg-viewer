@@ -16,7 +16,7 @@ DB_FILE = f'{DB_DIR}/database.db'
 def get_connection(db_file: str) -> Connection:
     assert os.path.exists(db_file)
     try:
-        # TODO: check_same_thread sounds risky
+        # NOTE: `check_same_thread` is False, as DB is READ ONLY
         conn = sqlite3.connect(db_file, check_same_thread=False)
     except sqlite3.OperationalError:
         return initialize_db(db_file)
@@ -28,7 +28,7 @@ def initialize_db(db_file: str) -> Connection:
     os.makedirs(DB_DIR, exist_ok=True)
     open(db_file, 'w+').close()
 
-    # TODO: check_same_thread sounds risky
+    # NOTE: `check_same_thread` is False, as DB is READ ONLY
     conn = sqlite3.connect(db_file, check_same_thread=False)
 
     with open('schema/schema.sql') as file:
