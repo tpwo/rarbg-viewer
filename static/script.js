@@ -3,12 +3,25 @@
 ((document) => {
     document.addEventListener('DOMContentLoaded', () => {
         registerSearchBtn();
+        registerSearchBoxEnter();
         document.getElementById('timestamp').innerHTML = Date().toLocaleString();
     });
 
     function registerSearchBtn() {
         let button = document.querySelector('#btn-search');
         button.addEventListener('click', search);
+    }
+
+    function registerSearchBoxEnter() {
+        let searchBox = document.getElementById('search-box');
+        if (searchBox) {
+            searchBox.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    search();
+                }
+            });
+        }
     }
 
     async function search() {
