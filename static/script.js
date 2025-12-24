@@ -12,7 +12,6 @@
     }
 
     async function search() {
-        alert('Clicked me');
         var query = document.getElementById('search-box').value;
         window.location.href = `results?search_query=${query}`;
         // await visitUrl(`results?search_query=${query}`);
