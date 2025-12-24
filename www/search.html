@@ -45,12 +45,22 @@
             paginationContainer.innerHTML = html;
         }
 
+        // Prepopulate search box
+        setTimeout(function() {
+            const searchBox = document.getElementById('search-box');
+            if (searchBox) searchBox.value = query;
+        }, 0);
+
         fetchResults();
     });
     </script>
 </head>
 <body>
     <h1>Search Results</h1>
+    <form id="search-form" onsubmit="return false;">
+        <input type="text" class="search-box" id="search-box" autofocus placeholder="Search for names...">
+        <input type="button" id="btn-search" value="Search">
+    </form>
     <div id="results">Loading...</div>
     <div id="pagination"></div>
     <a href="/">Back to search</a>
