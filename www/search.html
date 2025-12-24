@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Results</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/script.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Extract query and page from URL
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const query = decodeURIComponent(pathParts[1] || '');
+        const page = parseInt(pathParts[2] || '1', 10);
+        const resultsContainer = document.getElementById('results');
+        const paginationContainer = document.getElementById('pagination');
+        const perPage = 20;
+
+        function fetchResults() {
+            fetch(`/results?search_query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`)
+                .then(res => res.json())
+                .then(data => {
+                    renderResults(data.result || []);
+                    renderPagination(data.total_count || 0);
+                });
+        }
+
+        function renderResults(results) {
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<p>No results found.</p>';
+                return;
+            }
+            resultsContainer.innerHTML = '<ul>' + results.map(r => `<li>${r[0]} (${r[1]}, ${r[2]})</li>`).join('') + '</ul>';
+        }
+
+        function renderPagination(totalCount) {
+            const totalPages = Math.ceil(totalCount / perPage);
+            let html = '';
+            if (page > 1) {
+                html += `<a href="/search/${encodeURIComponent(query)}/${page-1}/">Previous</a> `;
+            }
+            html += `Page ${page} of ${totalPages}`;
+            if (page < totalPages) {
+                html += ` <a href="/search/${encodeURIComponent(query)}/${page+1}/">Next</a>`;
+            }
+            paginationContainer.innerHTML = html;
+        }
+
+        fetchResults();
+    });
+    </script>
+</head>
+<body>
+    <h1>Search Results</h1>
+    <div id="results">Loading...</div>
+    <div id="pagination"></div>
+    <a href="/">Back to search</a>
+</body>
+</html>

@@ -13,8 +13,9 @@
 
     async function search() {
         var query = document.getElementById('search-box').value;
-        window.location.href = `results?search_query=${query}`;
-        // await visitUrl(`results?search_query=${query}`);
+        if (query) {
+            window.location.href = `/search/${encodeURIComponent(query)}/1/`;
+        }
 }
 
     async function visitUrl(url) {

@@ -5,6 +5,7 @@ import sqlite3
 from sqlite3 import Connection
 
 from fastapi import FastAPI
+from fastapi import Query
 from fastapi import Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -41,6 +42,12 @@ CONN = get_connection(DB_FILE)
 app.mount('/static', StaticFiles(directory='static', html=True), 'static')
 
 
+@app.get('/search/{query}/{page}/')
+def search_page(query: str, page: int) -> FileResponse:
+    # Always serve the same HTML file; JS will handle fetching and rendering results
+    return FileResponse('www/search.html')
+
+
 @app.get('/')
 def index(request: Request) -> FileResponse:
     params = {item[0]: item[1] for item in request.query_params.multi_items()}
@@ -55,12 +62,22 @@ def index(request: Request) -> FileResponse:
 
 
 @app.get('/results')
-def get_count(search_query: str) -> object:
+def get_results(
+    search_query: str, page: int = Query(1, ge=1), per_page: int = Query(20, ge=1, le=100)
+) -> object:
+    offset = (page - 1) * per_page
     with CONN as conn:
         cursor = conn.cursor()
-        query_str = 'SELECT title, cat, dt FROM items WHERE title LIKE ? LIMIT 100'
-        cursor.execute(query_str, (like_str(search_query),))
-        return {'result': cursor.fetchall()}
+        # Get total count for pagination
+        count_query = 'SELECT COUNT(*) FROM items WHERE title LIKE ?'
+        cursor.execute(count_query, (like_str(search_query),))
+        total_count = cursor.fetchone()[0]
+
+        # Get paginated results
+        query_str = 'SELECT title, cat, dt FROM items WHERE title LIKE ? LIMIT ? OFFSET ?'
+        cursor.execute(query_str, (like_str(search_query), per_page, offset))
+        results = cursor.fetchall()
+        return {'result': results, 'total_count': total_count}
 
 
 def like_str(text: str) -> str:
