@@ -9,7 +9,6 @@ from fastapi import Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-
 DB_DIR = 'db'
 DB_FILE = f'{DB_DIR}/database.db'
 
@@ -43,7 +42,7 @@ app.mount('/static', StaticFiles(directory='static', html=True), 'static')
 
 
 @app.get('/')
-def index(request: Request):
+def index(request: Request) -> FileResponse:
     params = {item[0]: item[1] for item in request.query_params.multi_items()}
     query = ''
     for key, value in params.items():
@@ -56,7 +55,7 @@ def index(request: Request):
 
 
 @app.get('/results')
-def get_count(search_query) -> object:
+def get_count(search_query: str) -> object:
     with CONN as conn:
         cursor = conn.cursor()
         query_str = 'SELECT title, cat, dt FROM items WHERE title LIKE ? LIMIT 100'
