@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(url)
             .then(res => res.json())
             .then(data => {
-                renderResults(data.result || []);
+                renderResults(data.result || [], data.total_count || 0);
                 if ((data.result || []).length > 0) {
                     renderPagination(data.total_count || 0);
                 } else {
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return size.toFixed(2) + ' ' + units[unit];
     }
 
-    function renderResults(results) {
+    function renderResults(results, totalCount) {
         resultsContainer.style.display = '';
         if (results.length === 0) {
             resultsContainer.innerHTML = '<p>No results found.</p>';
@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
             none: ''
         };
         resultsContainer.innerHTML = `
+            <div class="results-count" style="margin-bottom: 0.5em; font-size: 1.08em; color: #444;">${totalCount} result${totalCount === 1 ? '' : 's'} found</div>
             <table class="results-table compact-table">
                 <thead>
                     <tr>
