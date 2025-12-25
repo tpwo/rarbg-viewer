@@ -93,13 +93,16 @@ def get_results(
         cursor.execute(count_query, params)
         total_count = cursor.fetchone()[0]
 
-        # Get paginated results
+        # Get paginated results (now including size)
         query_str = (
-            f'SELECT title, cat, dt FROM items WHERE title LIKE ?{cat_filter} LIMIT ? OFFSET ?'
+            'SELECT title, cat, dt, size FROM items '
+            f'WHERE title LIKE ?{cat_filter} LIMIT ? OFFSET ?'
         )
         params_page = params + [per_page, offset]
         cursor.execute(query_str, params_page)
         results = cursor.fetchall()
+        # Return raw size in bytes, None if missing
+        results = [(title, cat, dt, size) for (title, cat, dt, size) in results]
         return {'result': results, 'total_count': total_count}
 
 

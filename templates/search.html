@@ -71,19 +71,32 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    function humanReadableSize(size) {
+        if (typeof size !== 'number' || isNaN(size) || size === 0) return 'N/A';
+        if (size < 1000) return size + ' B';
+        const units = ['KB', 'MB', 'GB', 'TB'];
+        let unit = -1;
+        do {
+            size = size / 1000;
+            unit++;
+        } while (size >= 1000 && unit < units.length - 1);
+        return size.toFixed(2) + ' ' + units[unit];
+    }
+
     function renderResults(results) {
         resultsContainer.style.display = '';
         if (results.length === 0) {
             resultsContainer.innerHTML = '<p>No results found.</p>';
             return;
         }
-        // r[0]=title, r[1]=category, r[2]=date
+        // r[0]=title, r[1]=category, r[2]=date, r[3]=size (bytes)
         resultsContainer.innerHTML = '<ul class="results-list">' + results.map(r => `
             <li class="result-card">
                 <div class="result-title">${escapeHtml(r[0])}</div>
                 <div class="result-meta">
                     <span class="badge">${escapeHtml(r[1])}</span>
                     <span>${escapeHtml(r[2])}</span>
+                    <span>${humanReadableSize(Number(r[3]))}</span>
                 </div>
             </li>
         `).join('') + '</ul>';
