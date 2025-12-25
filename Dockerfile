@@ -7,6 +7,6 @@ COPY requirements requirements
 RUN uv venv && uv pip install -r requirements/requirements.txt
 ENV PATH="/app/.venv/bin/:$PATH"
 
-COPY --parents app schema static www /app/
+COPY --parents app schema static templates /app/
 
 CMD ["uvicorn", "app.main:app"]

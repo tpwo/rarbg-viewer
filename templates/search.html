@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}RareTide Search{% endblock %}
+
+{% block content %}
+<form id="search-form" onsubmit="return false;">
+    <input type="text" class="search-box" id="search-box" autofocus placeholder="Search for names...">
+    <select id="category-select">
+        <option value="">All Categories</option>
+        <option value="Movies">Movies</option>
+        <option value="TV">TV</option>
+        <option value="Games">Games</option>
+        <option value="Music">Music</option>
+        <option value="Books">Books</option>
+        <option value="Software">Software</option>
+        <option value="Adult">Adult</option>
+    </select>
+    <input type="button" id="btn-search" value="Search">
+</form>
+<div id="results" style="display:none;">Loading...</div>
+<div id="pagination" style="display:none;"></div>
+<a href="/" id="back-link" style="display:none;">Back to search</a>
+{% endblock %}
+
+{% block head %}
+<script src="/static/script.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Extract query and page from URL
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const query = decodeURIComponent(pathParts[1] || '');
+    const page = parseInt(pathParts[2] || '1', 10);
+    const resultsContainer = document.getElementById('results');
+    const paginationContainer = document.getElementById('pagination');
+    const backLink = document.getElementById('back-link');
+    const perPage = 20;
+
+    // Extract category from URL (query param)
+    function getCategoryFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('category') || '';
+    }
+
+    function fetchResults() {
+        if (!query) return; // Only fetch if query is present
+        const category = getCategoryFromUrl();
+        let url = `/results?search_query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`;
+        if (category) url += `&category=${encodeURIComponent(category)}`;
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                renderResults(data.result || []);
+                renderPagination(data.total_count || 0);
+            });
+    }
+
+    function renderResults(results) {
+        resultsContainer.style.display = '';
+        backLink.style.display = '';
+        if (results.length === 0) {
+            resultsContainer.innerHTML = '<p>No results found.</p>';
+            return;
+        }
+        resultsContainer.innerHTML = '<ul>' + results.map(r => `<li>${r[0]} (${r[1]}, ${r[2]})</li>`).join('') + '</ul>';
+    }
+
+    function renderPagination(totalCount) {
+        paginationContainer.style.display = '';
+        const totalPages = Math.ceil(totalCount / perPage);
+        let html = '';
+        if (page > 1) {
+            html += `<a href="/search/${encodeURIComponent(query)}/${page-1}/">Previous</a> `;
+        }
+        html += `Page ${page} of ${totalPages}`;
+        if (page < totalPages) {
+            html += ` <a href="/search/${encodeURIComponent(query)}/${page+1}/">Next</a>`;
+        }
+        paginationContainer.innerHTML = html;
+    }
+
+    // Prepopulate search box
+    setTimeout(function() {
+        const searchBox = document.getElementById('search-box');
+        if (searchBox) searchBox.value = query;
+        // Preselect category in dropdown
+        const category = getCategoryFromUrl();
+        const catSelect = document.getElementById('category-select');
+        if (catSelect && category) catSelect.value = category;
+    }, 0);
+
+    // Auto-search on category change
+    setTimeout(function() {
+        const catSelect = document.getElementById('category-select');
+        if (catSelect) {
+            catSelect.addEventListener('change', function() {
+                // Keep current search term
+                const searchBox = document.getElementById('search-box');
+                const queryVal = searchBox ? searchBox.value : '';
+                let url = `/search/${encodeURIComponent(queryVal)}/1/`;
+                if (catSelect.value) url += `?category=${encodeURIComponent(catSelect.value)}`;
+                window.location.href = url;
+            });
+        }
+    }, 0);
+
+    // Only fetch results if query is present
+    if (query) {
+        resultsContainer.style.display = '';
+        paginationContainer.style.display = '';
+        backLink.style.display = '';
+        fetchResults();
+    }
+});
+</script>
+{% endblock %}

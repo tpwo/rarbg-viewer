@@ -7,8 +7,8 @@ from sqlite3 import Connection
 from fastapi import FastAPI
 from fastapi import Query
 from fastapi import Request
-from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from app.category_map import CATEGORY_MAP
 
@@ -42,25 +42,22 @@ def initialize_db(db_file: str) -> Connection:
 app = FastAPI()
 CONN = get_connection(DB_FILE)
 app.mount('/static', StaticFiles(directory='static', html=True), 'static')
+templates = Jinja2Templates(directory='templates')
 
 
-@app.get('/search/{query}/{page}/')
-def search_page(query: str, page: int) -> FileResponse:
-    # Always serve the same HTML file; JS will handle fetching and rendering results
-    return FileResponse('www/search.html')
+# Unified search page for both / and /search/{query}/{page}/
 
 
 @app.get('/')
-def index(request: Request) -> FileResponse:
-    params = {item[0]: item[1] for item in request.query_params.multi_items()}
-    query = ''
-    for key, value in params.items():
-        if query == '':
-            query += '?'
-        query += f'{key}={value}&'
-    # return RedirectResponse(url=f'/www/index.html{query}', status_code=302)
-    # return {'status': 200}
-    return FileResponse('www/index.html')
+def main_search(request: Request) -> object:
+    return templates.TemplateResponse('search.html', {'request': request})
+
+
+@app.get('/search/{query}/{page}/')
+def search_page(request: Request, query: str, page: int) -> object:
+    return templates.TemplateResponse(
+        'search.html', {'request': request, 'query': query, 'page': page}
+    )
 
 
 @app.get('/results')

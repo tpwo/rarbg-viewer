@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}RareTide{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/styles.css">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% include 'header.html' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    {% include 'footer.html' %}
+</body>
+</html>
