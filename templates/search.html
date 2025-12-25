@@ -67,7 +67,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => res.json())
             .then(data => {
                 renderResults(data.result || []);
-                renderPagination(data.total_count || 0);
+                if ((data.result || []).length > 0) {
+                    renderPagination(data.total_count || 0);
+                } else {
+                    paginationContainer.style.display = 'none';
+                }
             });
     }
 
@@ -87,8 +91,10 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsContainer.style.display = '';
         if (results.length === 0) {
             resultsContainer.innerHTML = '<p>No results found.</p>';
+            paginationContainer.style.display = 'none';
             return;
         }
+        paginationContainer.style.display = '';
         // r is now an object: {title, cat, date, size, magnet}
         resultsContainer.innerHTML = '<ul class="results-list">' + results.map(r => `
             <li class="result-card">
@@ -130,7 +136,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderPagination(totalCount) {
         paginationContainer.style.display = '';
-        const totalPages = Math.ceil(totalCount / perPage);
+        let totalPages = Math.ceil(totalCount / perPage);
+        if (totalPages === 0) totalPages = 1;
         let html = '';
         if (page > 1) {
             html += `<a href="/search/${encodeURIComponent(query)}/${page-1}/">Previous</a> `;
