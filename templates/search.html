@@ -128,9 +128,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const catSelect = document.getElementById('category-select');
         if (catSelect) {
             catSelect.addEventListener('change', function() {
-                // Keep current search term
+                // Only redirect if search box is not empty
                 const searchBox = document.getElementById('search-box');
                 const queryVal = searchBox ? searchBox.value : '';
+                if (!queryVal) return;
                 let url = `/search/${encodeURIComponent(queryVal)}/1/`;
                 if (catSelect.value) url += `?category=${encodeURIComponent(catSelect.value)}`;
                 window.location.href = url;
