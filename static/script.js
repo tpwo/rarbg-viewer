@@ -74,29 +74,54 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         paginationContainer.style.display = '';
-        resultsContainer.innerHTML = '<ul class="results-list">' + results.map(r => `
-            <li class="result-card">
-                <div class="result-title">${escapeHtml(r.title)}</div>
-                <div class="result-meta">
-                    <span class="badge">${escapeHtml(r.cat)}</span>
-                    <span>${escapeHtml(r.date)}</span>
-                    <span>${humanReadableSize(Number(r.size))}</span>
-                    <a href="${r.magnet}" class="magnet-link" title="Download via Magnet">
-                        <svg class="magnet-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <rect x="7" y="2" width="6" height="10" rx="3" stroke="currentColor" stroke-width="2"/>
-                            <path d="M7 12v2a3 3 0 0 0 6 0v-2" stroke="currentColor" stroke-width="2"/>
-                            <circle cx="10" cy="17" r="1" fill="currentColor"/>
-                        </svg>
-                    </a>
-                </div>
-            </li>
-        `).join('') + '</ul>';
+        resultsContainer.innerHTML = `
+            <table class="results-table compact-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Date</th>
+                        <th>Size</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${results.map(r => `
+                        <tr class="result-card-row">
+                            <td class="result-title">
+                                <span class="badge">${escapeHtml(r.cat)}</span>
+                                ${escapeHtml(r.title)}
+                            </td>
+                            <td>${escapeHtml(r.date)}</td>
+                            <td>${humanReadableSize(Number(r.size))}</td>
+                            <td>
+                                <a href="${r.magnet}" class="magnet-link" title="Download via Magnet">
+                                    <svg class="magnet-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                        <rect x="7" y="2" width="6" height="10" rx="3" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M7 12v2a3 3 0 0 0 6 0v-2" stroke="currentColor" stroke-width="2"/>
+                                        <circle cx="10" cy="17" r="1" fill="currentColor"/>
+                                    </svg>
+                                </a>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
         if (!document.getElementById('magnet-icon-style')) {
             const style = document.createElement('style');
             style.id = 'magnet-icon-style';
-            style.textContent = `.magnet-link { margin-left: 8px; vertical-align: middle; }
+            style.textContent = `
+                .magnet-link { margin-left: 4px; vertical-align: middle; }
                 .magnet-icon { vertical-align: middle; color: #e74c3c; transition: color 0.2s; }
-                .magnet-link:hover .magnet-icon { color: #c0392b; }`;
+                .magnet-link:hover .magnet-icon { color: #c0392b; }
+                .results-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+                .results-table th, .results-table td { padding: 0.35rem 0.6rem; text-align: left; vertical-align: middle; }
+                .results-table th { background: #f4faff; font-weight: 600; border-bottom: 1px solid #e0e0e0; }
+                .result-card-row { background: #fff; border-radius: 4px; transition: box-shadow 0.2s; }
+                .result-card-row:hover { box-shadow: 0 2px 8px 0 #e0e8f0; }
+                .result-title { font-size: 1rem; font-weight: 500; }
+                .badge { display: inline-block; background: #2d7dd2; color: #fff; border-radius: 4px; padding: 0.1em 0.6em; font-size: 0.85em; margin-right: 0.5em; }
+            `;
             document.head.appendChild(style);
         }
     }
