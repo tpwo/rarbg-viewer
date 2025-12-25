@@ -75,6 +75,12 @@ def get_results(
     sort_col: str = Query('title'),
     sort_dir: str = Query('asc'),
 ) -> object:
+    if len(search_query) < 3:
+        return {
+            'result': [],
+            'total_count': 0,
+            'error': 'Search query must be at least 3 characters.',
+        }
     offset = (page - 1) * per_page
     cats = CATEGORY_MAP.get(category) if category else None
     # Validate sort_col and sort_dir

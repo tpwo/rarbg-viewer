@@ -236,13 +236,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function doSearch() {
         var queryVal = searchBox ? searchBox.value : '';
+        if (queryVal.length < 3) {
+            resultsContainer.innerHTML = '<p>Please enter at least 3 characters to search.</p>';
+            resultsContainer.style.display = '';
+            paginationContainer.style.display = 'none';
+            if (searchBox) searchBox.focus();
+            return;
+        }
         var category = document.getElementById('category-select') ? document.getElementById('category-select').value : '';
         let url = `/search/${encodeURIComponent(queryVal)}/1/`;
         if (category) {
             url += `?category=${encodeURIComponent(category)}`;
         }
-        if (queryVal) {
-            window.location.href = url;
-        }
+        window.location.href = url;
     }
 });
