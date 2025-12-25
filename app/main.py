@@ -10,6 +10,8 @@ from fastapi import Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.category_map import CATEGORY_MAP
+
 DB_DIR = 'db'
 DB_FILE = f'{DB_DIR}/database.db'
 
@@ -63,19 +65,31 @@ def index(request: Request) -> FileResponse:
 
 @app.get('/results')
 def get_results(
-    search_query: str, page: int = Query(1, ge=1), per_page: int = Query(20, ge=1, le=100)
+    search_query: str,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+    category: str | None = Query(None),
 ) -> object:
     offset = (page - 1) * per_page
+    cats = CATEGORY_MAP.get(category) if category else None
     with CONN as conn:
         cursor = conn.cursor()
+        params = [like_str(search_query)]
+        cat_filter = ''
+        if cats:
+            cat_filter = f' AND cat IN ({",".join(["?"] * len(cats))})'
+            params.extend(cats)
         # Get total count for pagination
-        count_query = 'SELECT COUNT(*) FROM items WHERE title LIKE ?'
-        cursor.execute(count_query, (like_str(search_query),))
+        count_query = f'SELECT COUNT(*) FROM items WHERE title LIKE ?{cat_filter}'
+        cursor.execute(count_query, params)
         total_count = cursor.fetchone()[0]
 
         # Get paginated results
-        query_str = 'SELECT title, cat, dt FROM items WHERE title LIKE ? LIMIT ? OFFSET ?'
-        cursor.execute(query_str, (like_str(search_query), per_page, offset))
+        query_str = (
+            f'SELECT title, cat, dt FROM items WHERE title LIKE ?{cat_filter} LIMIT ? OFFSET ?'
+        )
+        params_page = params + [per_page, offset]
+        cursor.execute(query_str, params_page)
         results = cursor.fetchall()
         return {'result': results, 'total_count': total_count}
 

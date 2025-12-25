@@ -26,10 +26,15 @@
 
     async function search() {
         var query = document.getElementById('search-box').value;
-        if (query) {
-            window.location.href = `/search/${encodeURIComponent(query)}/1/`;
+        var category = document.getElementById('category-select') ? document.getElementById('category-select').value : '';
+        let url = `/search/${encodeURIComponent(query)}/1/`;
+        if (category) {
+            url += `?category=${encodeURIComponent(category)}`;
         }
-}
+        if (query) {
+            window.location.href = url;
+        }
+    }
 
     async function visitUrl(url) {
         await fetch(url)
