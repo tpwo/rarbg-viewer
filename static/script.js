@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // If using /search/{query}/{page}/ path, update location accordingly
                     const pathParts = window.location.pathname.split('/').filter(Boolean);
                     if (pathParts[0] === 'search' && pathParts.length >= 2) {
-                        let url = `/search/${encodeURIComponent(pathParts[1])}/1/`;
+                        let url = `/search/${decodeURIComponent(pathParts[1])}/1/`;
                         const paramStr = params.toString();
                         if (paramStr) url += `?${paramStr}`;
                         window.location.href = url;
