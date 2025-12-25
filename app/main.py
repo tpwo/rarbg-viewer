@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 import sqlite3
 from sqlite3 import Connection
@@ -15,6 +16,43 @@ from app.category_map import CATEGORY_MAP
 
 DB_DIR = 'db'
 DB_FILE = f'{DB_DIR}/database.db'
+
+
+# Ensure FTS5 table exists and is populated if empty
+def ensure_fts5_table() -> None:
+    with CONN as conn:
+        cursor = conn.cursor()
+        logging.info("Ensuring FTS5 table 'items_fts' exists...")
+        cursor.execute(
+            """CREATE VIRTUAL TABLE IF NOT EXISTS items_fts USING fts5(
+                title,
+                content='items',
+                content_rowid='rowid'
+            );"""
+        )
+        logging.info("FTS5 table 'items_fts' checked/created.")
+        # Check if FTS5 table is empty
+        #
+        # This is a bit stupid, but this table is non-empty after the query
+        # above creates items_fts. But we still have to fill it with data.
+        #
+        # So we check for sample match `abc` which should return something.
+        #
+        # DB state is quite static in this project, so this is good enough for now.
+        cursor.execute(
+            'SELECT COUNT(*) FROM items_fts JOIN items i on i.rowid = items_fts.rowid WHERE items_fts MATCH "abc"'
+        )
+        count = cursor.fetchone()[0]
+        if count == 0:
+            logging.info("FTS5 table 'items_fts' is empty. Populating from 'items' table...")
+            cursor.execute('INSERT INTO items_fts(rowid, title) SELECT rowid, title FROM items')
+            logging.info("FTS5 table 'items_fts' population complete.")
+        else:
+            logging.info("FTS5 table 'items_fts' already populated.")
+        conn.commit()
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 def get_connection(db_file: str) -> Connection:
@@ -42,6 +80,7 @@ def initialize_db(db_file: str) -> Connection:
 
 app = FastAPI()
 CONN = get_connection(DB_FILE)
+ensure_fts5_table()
 app.mount('/static', StaticFiles(directory='static', html=True), 'static')
 templates = Jinja2Templates(directory='templates')
 
@@ -95,22 +134,31 @@ def get_results(
         sort_dir_sql = 'ASC'
     with CONN as conn:
         cursor = conn.cursor()
-        params = [like_str(search_query)]
+        # Use FTS5 for search
+        params = [search_query]
         cat_filter = ''
         if cats:
-            cat_filter = f' AND cat IN ({",".join(["?"] * len(cats))})'
+            cat_filter = f' AND i.cat IN ({",".join(["?"] * len(cats))})'
             params.extend(cats)
         # Get total count for pagination
-        count_query = f'SELECT COUNT(*) FROM items WHERE title LIKE ?{cat_filter}'
+        count_query = 'SELECT COUNT(*) FROM items_fts WHERE items_fts MATCH ?'
+        if cats:
+            count_query = (
+                'SELECT COUNT(*) FROM items_fts '
+                'JOIN items i ON i.rowid = items_fts.rowid '
+                f'WHERE items_fts MATCH ?{cat_filter}'
+            )
         cursor.execute(count_query, params)
         total_count = cursor.fetchone()[0]
 
         # Get paginated, sorted results
         query_str = (
-            f'SELECT title, cat, dt, size, hash FROM items '
-            f'WHERE title LIKE ?{cat_filter} '
-            f'ORDER BY {sort_col_sql} {sort_dir_sql} '
-            f'LIMIT ? OFFSET ?'
+            'SELECT i.title, i.cat, i.dt, i.size, i.hash '
+            'FROM items_fts '
+            'JOIN items i ON i.rowid = items_fts.rowid '
+            f'WHERE items_fts MATCH ?{cat_filter} '
+            f'ORDER BY i.{sort_col_sql} {sort_dir_sql} '
+            'LIMIT ? OFFSET ?'
         )
         params_page = params + [per_page, offset]
         cursor.execute(query_str, params_page)
@@ -137,8 +185,3 @@ def just_date(dt: str) -> str:
     if not dt:
         return ''
     return str(dt)[:10]
-
-
-def like_str(text: str) -> str:
-    # Replace spaces with % to match any characters (including .) between words
-    return '%' + text.replace(' ', '%') + '%'
