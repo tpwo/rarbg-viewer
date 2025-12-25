@@ -19,7 +19,6 @@
 </form>
 <div id="results" style="display:none;">Loading...</div>
 <div id="pagination" style="display:none;"></div>
-<a href="/" id="back-link" style="display:none;">Back to search</a>
 {% endblock %}
 
 {% block head %}
@@ -32,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const page = parseInt(pathParts[2] || '1', 10);
     const resultsContainer = document.getElementById('results');
     const paginationContainer = document.getElementById('pagination');
-    const backLink = document.getElementById('back-link');
     const perPage = 20;
 
     // Extract category from URL (query param)
@@ -56,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderResults(results) {
         resultsContainer.style.display = '';
-        backLink.style.display = '';
         if (results.length === 0) {
             resultsContainer.innerHTML = '<p>No results found.</p>';
             return;
@@ -107,7 +104,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (query) {
         resultsContainer.style.display = '';
         paginationContainer.style.display = '';
-        backLink.style.display = '';
         fetchResults();
     }
 });
