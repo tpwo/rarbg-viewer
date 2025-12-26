@@ -151,25 +151,28 @@ def get_results(
             cat_filter = f' AND i.cat IN ({",".join(["?"] * len(cats))})'
             params.extend(cats)
         # Get total count for pagination
-        count_query = 'SELECT COUNT(*) FROM items_fts WHERE items_fts MATCH ?'
         if cats:
-            count_query = (
-                'SELECT COUNT(*) FROM items_fts '
-                'JOIN items i ON i.rowid = items_fts.rowid '
-                f'WHERE items_fts MATCH ?{cat_filter}'
-            )
+            count_query = f"""\
+SELECT COUNT(*) FROM items_fts
+JOIN items i ON i.rowid = items_fts.rowid
+WHERE items_fts MATCH ?{cat_filter}
+"""
+        else:
+            count_query = """\
+SELECT COUNT(*) FROM items_fts WHERE items_fts MATCH ?
+"""
         cursor.execute(count_query, params)
         total_count = cursor.fetchone()[0]
 
         # Get paginated, sorted results
-        query_str = (
-            'SELECT i.title, i.cat, i.dt, i.size, i.hash '
-            'FROM items_fts '
-            'JOIN items i ON i.rowid = items_fts.rowid '
-            f'WHERE items_fts MATCH ?{cat_filter} '
-            f'ORDER BY i.{sort_col_sql} {sort_dir_sql} '
-            'LIMIT ? OFFSET ?'
-        )
+        query_str = f"""\
+SELECT i.title, i.cat, i.dt, i.size, i.hash
+FROM items_fts
+JOIN items i ON i.rowid = items_fts.rowid
+WHERE items_fts MATCH ?{cat_filter}
+ORDER BY i.{sort_col_sql} {sort_dir_sql}
+LIMIT ? OFFSET ?
+"""
         params_page = params + [per_page, offset]
         cursor.execute(query_str, params_page)
         results = cursor.fetchall()
