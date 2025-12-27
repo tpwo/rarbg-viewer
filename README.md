@@ -4,6 +4,8 @@ Simple web viewer for SQLite databases with schema compatible with [RARBG](https
 
 Under the hood this project uses [FTS5](https://sqlite.org/fts5.html) which makes it *fast*.
 
+<img alt="rarbg-viewer UI" src="https://github.com/user-attachments/assets/a5477691-214d-4f56-b824-8f3d1cf031d3" />
+
 ## Running
 
 Requirements:
