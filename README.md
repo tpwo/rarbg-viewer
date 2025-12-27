@@ -17,7 +17,7 @@ To list all available running options run `just --list`.
 ### TLDR
 
 1. Clone this repo.
-1. Download [this DB dump](https://tinyurl.com/rarbg-db-zip) and put it inside `db` folder in the cloned repo.
+1. Download [this DB dump](https://tinyurl.com/rarbg-db-zip) and put it inside [db](db) folder in the cloned repo.
 1. Run `just up` or `docker compose up --build` if you don't have `just`.
 1. Open http://127.0.0.1:8000 and use the app!
 
