@@ -1,3 +1,5 @@
+import { categoryIcons, categorySets, sortIcons } from './consts.js';
+
 document.addEventListener('DOMContentLoaded', () => {
   // Timestamp in footer
   const ts = document.getElementById('timestamp');
@@ -199,18 +201,6 @@ function _renderResults(
   sortCol,
   sortDir,
 ) {
-  // Category icon SVGs (simple, recognizable)
-  const categoryIcons = {
-    Movies: '<i class="bi bi-film" title="Movies"></i>',
-    TV: '<i class="bi bi-tv" title="TV"></i>',
-    Games: '<i class="bi bi-controller" title="Games"></i>',
-    Music: '<i class="bi bi-music-note-beamed" title="Music"></i>',
-    Books: '<i class="bi bi-book" title="Books"></i>',
-    Software: '<i class="bi bi-cpu" title="Software"></i>',
-    Adult: '<i class="bi bi-person-video" title="Adult"></i>',
-    Other: '<i class="bi bi-folder" title="Other"></i>',
-  };
-
   if (resultsContainer) resultsContainer.classList.remove('hidden');
   // Per-page dropdown UI
   // Calculate current range
@@ -264,11 +254,6 @@ function _renderResults(
     window._rtSortState = { col: sortCol, dir: sortDir };
   }
   const sortState = window._rtSortState;
-  const sortIcons = {
-    asc: '▲',
-    desc: '▼',
-    none: '',
-  };
   resultsContainer.innerHTML = `
             <table class="results-table compact-table">
                 <thead>
@@ -332,28 +317,7 @@ function _renderResults(
 }
 
 function getTopLevelCategory(cat) {
-  for (const [top, subs] of Object.entries({
-    Movies: new Set([
-      'movies',
-      'movies_bd_full',
-      'movies_bd_remux',
-      'movies_x264',
-      'movies_x264_3d',
-      'movies_x264_4k',
-      'movies_x264_720',
-      'movies_x265',
-      'movies_x265_4k',
-      'movies_x265_4k_hdr',
-      'movies_xvid',
-      'movies_xvid_720',
-    ]),
-    TV: new Set(['tv', 'tv_sd', 'tv_uhd']),
-    Games: new Set(['games_pc_iso', 'games_pc_rip', 'games_ps3', 'games_ps4', 'games_xbox360']),
-    Music: new Set(['music_flac', 'music_mp3']),
-    Books: new Set(['ebooks']),
-    Software: new Set(['software_pc_iso']),
-    Adult: new Set(['xxx']),
-  })) {
+  for (const [top, subs] of Object.entries(categorySets)) {
     if (subs.has(cat)) return top;
   }
   return 'Other';
