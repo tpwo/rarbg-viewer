@@ -36,159 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const sortCol = urlParams.get('sort_col') || 'title';
   const sortDir = urlParams.get('sort_dir') || 'asc';
 
-  function _renderResults(results, totalCount) {
-    // Category icon SVGs (simple, recognizable)
-    const categoryIcons = {
-      Movies: '<i class="bi bi-film" title="Movies" style="font-size: 1.25em;"></i>',
-      TV: '<i class="bi bi-tv" title="TV" style="font-size: 1.25em;"></i>',
-      Games: '<i class="bi bi-controller" title="Games" style="font-size: 1.25em;"></i>',
-      Music: '<i class="bi bi-music-note-beamed" title="Music" style="font-size: 1.25em;"></i>',
-      Books: '<i class="bi bi-book" title="Books" style="font-size: 1.25em;"></i>',
-      Software: '<i class="bi bi-cpu" title="Software" style="font-size: 1.25em;"></i>',
-      Adult: '<i class="bi bi-person-video" title="Adult" style="font-size: 1.25em;"></i>',
-      Other: '<i class="bi bi-folder" title="Other" style="font-size: 1.25em;"></i>',
-    };
-
-    resultsContainer.style.display = '';
-    // Per-page dropdown UI
-    // Calculate current range
-    const startIdx = totalCount === 0 ? 0 : (page - 1) * perPage + 1;
-    const endIdx = Math.min(page * perPage, totalCount);
-    const rangeText = totalCount === 0 ? '' : `${startIdx}-${endIdx}`;
-    const perPageHtml = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em; margin-top: 0.5em; padding-top: 0.5em;">
-            <div class="results-count" style="font-size: 1.08em; color: #444;">
-                ${rangeText ? `<span class='results-range'>Showing results ${rangeText}<br></span> ` : ''}${totalCount} total found
-            </div>
-            <div style="font-size: 1.08em; color: #444;">
-                <label for="per-page-select" style="margin-right: 0.4em;">Per page:</label>
-                <select id="per-page-select" style="font-size: 1em; padding: 0.1em 0.5em;">
-                    ${perPageOptions.map((opt) => `<option value="${opt}"${opt === perPage ? ' selected' : ''}>${opt}</option>`).join('')}
-                </select>
-            </div>
-        </div>`;
-    document.getElementById('per-page-container').innerHTML = perPageHtml;
-    document.getElementById('per-page-container').style.display = '';
-    setTimeout(() => {
-      const select = document.getElementById('per-page-select');
-      if (select) {
-        select.onchange = () => {
-          const params = new URLSearchParams(window.location.search);
-          params.set('per_page', select.value);
-          // Always go to page 1 when per-page changes
-          params.set('page', '1');
-          // If using /search/{query}/{page}/ path, update location accordingly
-          const pathParts = window.location.pathname.split('/').filter(Boolean);
-          if (pathParts[0] === 'search' && pathParts.length >= 2) {
-            let url = `/search/${decodeURIComponent(pathParts[1])}/1/`;
-            const paramStr = params.toString();
-            if (paramStr) url += `?${paramStr}`;
-            window.location.href = url;
-          } else {
-            window.location.search = params.toString();
-          }
-        };
-      }
-    }, 0);
-    if (results.length === 0) {
-      document.getElementById('per-page-container').innerHTML = '';
-      document.getElementById('per-page-container').style.display = 'none';
-      resultsContainer.innerHTML = '<p>No results found.</p>';
-      paginationContainer.style.display = 'none';
-      return;
-    }
-    paginationContainer.style.display = '';
-    // Sorting state
-    if (!window._rtSortState) {
-      window._rtSortState = { col: sortCol, dir: sortDir };
-    }
-    const sortState = window._rtSortState;
-    const sortIcons = {
-      asc: '▲',
-      desc: '▼',
-      none: '',
-    };
-    resultsContainer.innerHTML = `
-            <table class="results-table compact-table">
-                <thead>
-                    <tr>
-                        <th class="sortable" data-col="title">Name ${sortState.col === 'title' ? sortIcons[sortState.dir] : ''}</th>
-                        <th class="sortable" data-col="date">Date ${sortState.col === 'date' ? sortIcons[sortState.dir] : ''}</th>
-                        <th class="sortable" data-col="size">Size ${sortState.col === 'size' ? sortIcons[sortState.dir] : ''}</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${results
-                      .map((r) => {
-                        const topCat = getTopLevelCategory(r.cat);
-                        const icon = categoryIcons[topCat] || categoryIcons.Other;
-                        return `
-                        <tr class="result-card-row">
-                            <td class="result-title" style="display: flex; align-items: center; gap: 0.5em;">
-                                <span class="cat-icon" title="${escapeHtml(topCat)}">${icon}</span>
-                                <span style="vertical-align: middle;">${escapeHtml(r.title)}</span>
-                            </td>
-                            <td>${escapeHtml(r.date)}</td>
-                            <td>${humanReadableSize(Number(r.size))}</td>
-                            <td>
-                                <a href="${r.magnet}" class="magnet-link" title="Download via Magnet">
-                                    <i class="bi bi-link" style="font-size: 1.25em;"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        `;
-                      })
-                      .join('')}
-                </tbody>
-            </table>
-        `;
-    // Add sorting event listeners
-    setTimeout(() => {
-      document.querySelectorAll('.results-table th.sortable').forEach((th) => {
-        th.style.cursor = 'pointer';
-        th.onclick = () => {
-          const col = th.getAttribute('data-col');
-          if (sortState.col === col) {
-            sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
-          } else {
-            sortState.col = col;
-            sortState.dir = 'asc';
-          }
-          // Update URL path to page 1 and preserve sort/category params
-          const params = new URLSearchParams(window.location.search);
-          params.set('sort_col', sortState.col);
-          params.set('sort_dir', sortState.dir);
-          // Remove page param from query string (will be in path)
-          params.delete('page');
-          const _category = params.get('category');
-          let url = `/search/${encodeURIComponent(query)}/1/`;
-          const paramStr = params.toString();
-          if (paramStr) url += `?${paramStr}`;
-          window.location.href = url;
-        };
-      });
-    }, 0);
-    if (!document.getElementById('magnet-icon-style')) {
-      const style = document.createElement('style');
-      style.id = 'magnet-icon-style';
-      style.textContent = `
-                .magnet-link { margin-left: 4px; vertical-align: middle; }
-                .magnet-icon { vertical-align: middle; color: #e74c3c; transition: color 0.2s; }
-                .magnet-link:hover .magnet-icon { color: #c0392b; }
-                .results-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-                .results-table th, .results-table td { padding: 0.35rem 0.6rem; text-align: left; vertical-align: middle; user-select: none; }
-                .results-table th.sortable { color: #2d7dd2; }
-                .results-table th.sortable:hover { text-decoration: underline; }
-                .results-table th { background: #f4faff; font-weight: 600; border-bottom: 1px solid #e0e0e0; }
-                .result-card-row { background: #fff; border-radius: 4px; transition: box-shadow 0.2s; }
-                .result-card-row:hover { box-shadow: 0 2px 8px 0 #e0e8f0; }
-                .result-title { font-size: 1rem; font-weight: 500; }
-                .badge { display: inline-block; background: #2d7dd2; color: #fff; border-radius: 4px; padding: 0.1em 0.6em; font-size: 0.85em; margin-right: 0.5em; }
-            `;
-      document.head.appendChild(style);
-    }
-  }
-
   setTimeout(() => {
     if (searchBox) searchBox.value = query;
     const category = getCategoryFromUrl();
@@ -227,7 +74,17 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
-        _renderResults(data.result || [], data.total_count || 0);
+        _renderResults(
+          data.result || [],
+          data.total_count || 0,
+          resultsContainer,
+          page,
+          perPage,
+          perPageOptions,
+          paginationContainer,
+          sortCol,
+          sortDir,
+        );
         if ((data.result || []).length > 0) {
           _renderPagination(
             data.total_count || 0,
@@ -341,6 +198,169 @@ function doSearch(searchBox, resultsContainer, paginationContainer) {
     url += `?category=${encodeURIComponent(category)}`;
   }
   window.location.href = url;
+}
+
+function _renderResults(
+  results,
+  totalCount,
+  resultsContainer,
+  page,
+  perPage,
+  perPageOptions,
+  paginationContainer,
+  sortCol,
+  sortDir,
+) {
+  // Category icon SVGs (simple, recognizable)
+  const categoryIcons = {
+    Movies: '<i class="bi bi-film" title="Movies" style="font-size: 1.25em;"></i>',
+    TV: '<i class="bi bi-tv" title="TV" style="font-size: 1.25em;"></i>',
+    Games: '<i class="bi bi-controller" title="Games" style="font-size: 1.25em;"></i>',
+    Music: '<i class="bi bi-music-note-beamed" title="Music" style="font-size: 1.25em;"></i>',
+    Books: '<i class="bi bi-book" title="Books" style="font-size: 1.25em;"></i>',
+    Software: '<i class="bi bi-cpu" title="Software" style="font-size: 1.25em;"></i>',
+    Adult: '<i class="bi bi-person-video" title="Adult" style="font-size: 1.25em;"></i>',
+    Other: '<i class="bi bi-folder" title="Other" style="font-size: 1.25em;"></i>',
+  };
+
+  resultsContainer.style.display = '';
+  // Per-page dropdown UI
+  // Calculate current range
+  const startIdx = totalCount === 0 ? 0 : (page - 1) * perPage + 1;
+  const endIdx = Math.min(page * perPage, totalCount);
+  const rangeText = totalCount === 0 ? '' : `${startIdx}-${endIdx}`;
+  const perPageHtml = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em; margin-top: 0.5em; padding-top: 0.5em;">
+            <div class="results-count" style="font-size: 1.08em; color: #444;">
+                ${rangeText ? `<span class='results-range'>Showing results ${rangeText}<br></span> ` : ''}${totalCount} total found
+            </div>
+            <div style="font-size: 1.08em; color: #444;">
+                <label for="per-page-select" style="margin-right: 0.4em;">Per page:</label>
+                <select id="per-page-select" style="font-size: 1em; padding: 0.1em 0.5em;">
+                    ${perPageOptions.map((opt) => `<option value="${opt}"${opt === perPage ? ' selected' : ''}>${opt}</option>`).join('')}
+                </select>
+            </div>
+        </div>`;
+  document.getElementById('per-page-container').innerHTML = perPageHtml;
+  document.getElementById('per-page-container').style.display = '';
+  setTimeout(() => {
+    const select = document.getElementById('per-page-select');
+    if (select) {
+      select.onchange = () => {
+        const params = new URLSearchParams(window.location.search);
+        params.set('per_page', select.value);
+        // Always go to page 1 when per-page changes
+        params.set('page', '1');
+        // If using /search/{query}/{page}/ path, update location accordingly
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        if (pathParts[0] === 'search' && pathParts.length >= 2) {
+          let url = `/search/${decodeURIComponent(pathParts[1])}/1/`;
+          const paramStr = params.toString();
+          if (paramStr) url += `?${paramStr}`;
+          window.location.href = url;
+        } else {
+          window.location.search = params.toString();
+        }
+      };
+    }
+  }, 0);
+  if (results.length === 0) {
+    document.getElementById('per-page-container').innerHTML = '';
+    document.getElementById('per-page-container').style.display = 'none';
+    resultsContainer.innerHTML = '<p>No results found.</p>';
+    paginationContainer.style.display = 'none';
+    return;
+  }
+  paginationContainer.style.display = '';
+  // Sorting state
+  if (!window._rtSortState) {
+    window._rtSortState = { col: sortCol, dir: sortDir };
+  }
+  const sortState = window._rtSortState;
+  const sortIcons = {
+    asc: '▲',
+    desc: '▼',
+    none: '',
+  };
+  resultsContainer.innerHTML = `
+            <table class="results-table compact-table">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-col="title">Name ${sortState.col === 'title' ? sortIcons[sortState.dir] : ''}</th>
+                        <th class="sortable" data-col="date">Date ${sortState.col === 'date' ? sortIcons[sortState.dir] : ''}</th>
+                        <th class="sortable" data-col="size">Size ${sortState.col === 'size' ? sortIcons[sortState.dir] : ''}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${results
+                      .map((r) => {
+                        const topCat = getTopLevelCategory(r.cat);
+                        const icon = categoryIcons[topCat] || categoryIcons.Other;
+                        return `
+                        <tr class="result-card-row">
+                            <td class="result-title" style="display: flex; align-items: center; gap: 0.5em;">
+                                <span class="cat-icon" title="${escapeHtml(topCat)}">${icon}</span>
+                                <span style="vertical-align: middle;">${escapeHtml(r.title)}</span>
+                            </td>
+                            <td>${escapeHtml(r.date)}</td>
+                            <td>${humanReadableSize(Number(r.size))}</td>
+                            <td>
+                                <a href="${r.magnet}" class="magnet-link" title="Download via Magnet">
+                                    <i class="bi bi-link" style="font-size: 1.25em;"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        `;
+                      })
+                      .join('')}
+                </tbody>
+            </table>
+        `;
+  // Add sorting event listeners
+  setTimeout(() => {
+    document.querySelectorAll('.results-table th.sortable').forEach((th) => {
+      th.style.cursor = 'pointer';
+      th.onclick = () => {
+        const col = th.getAttribute('data-col');
+        if (sortState.col === col) {
+          sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortState.col = col;
+          sortState.dir = 'asc';
+        }
+        // Update URL path to page 1 and preserve sort/category params
+        const params = new URLSearchParams(window.location.search);
+        params.set('sort_col', sortState.col);
+        params.set('sort_dir', sortState.dir);
+        // Remove page param from query string (will be in path)
+        params.delete('page');
+        const _category = params.get('category');
+        let url = `/search/${encodeURIComponent(query)}/1/`;
+        const paramStr = params.toString();
+        if (paramStr) url += `?${paramStr}`;
+        window.location.href = url;
+      };
+    });
+  }, 0);
+  if (!document.getElementById('magnet-icon-style')) {
+    const style = document.createElement('style');
+    style.id = 'magnet-icon-style';
+    style.textContent = `
+                .magnet-link { margin-left: 4px; vertical-align: middle; }
+                .magnet-icon { vertical-align: middle; color: #e74c3c; transition: color 0.2s; }
+                .magnet-link:hover .magnet-icon { color: #c0392b; }
+                .results-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+                .results-table th, .results-table td { padding: 0.35rem 0.6rem; text-align: left; vertical-align: middle; user-select: none; }
+                .results-table th.sortable { color: #2d7dd2; }
+                .results-table th.sortable:hover { text-decoration: underline; }
+                .results-table th { background: #f4faff; font-weight: 600; border-bottom: 1px solid #e0e0e0; }
+                .result-card-row { background: #fff; border-radius: 4px; transition: box-shadow 0.2s; }
+                .result-card-row:hover { box-shadow: 0 2px 8px 0 #e0e8f0; }
+                .result-title { font-size: 1rem; font-weight: 500; }
+                .badge { display: inline-block; background: #2d7dd2; color: #fff; border-radius: 4px; padding: 0.1em 0.6em; font-size: 0.85em; margin-right: 0.5em; }
+            `;
+    document.head.appendChild(style);
+  }
 }
 
 function getTopLevelCategory(cat) {
