@@ -308,7 +308,6 @@ function _renderResults(
         params.set('sort_dir', sortState.dir);
         // Remove page param from query string (will be in path)
         params.delete('page');
-        const _category = params.get('category');
         let url = `/search/${encodeURIComponent(query)}/1/`;
         const paramStr = params.toString();
         if (paramStr) url += `?${paramStr}`;
