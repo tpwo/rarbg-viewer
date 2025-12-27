@@ -17,13 +17,13 @@ To list all available running options run `just --list`.
 ### TLDR
 
 1. Clone this repo.
-1. Download [this DB dump](magnet:?xt=urn:btih:a2ca83e177df5cb1966dfc1d262bc751e4987405&dn=rarbg_db.zip) and put it inside `db` folder in the cloned repo.
+1. Download [this DB dump](https://tinyurl.com/rarbg-db-zip) and put it inside `db` folder in the cloned repo.
 1. Run `just up` or `docker compose up --build` if you don't have `just`.
 1. Open http://127.0.0.1:8000 and use the app!
 
 ### Database
 
-You need a copy of sqlite DB to run this app yourself. Happily it's available under [this magnet link](magnet:?xt=urn:btih:a2ca83e177df5cb1966dfc1d262bc751e4987405&dn=rarbg_db.zip).
+You need a copy of sqlite DB to run this app yourself. Happily it's available under [this magnet link](https://tinyurl.com/rarbg-db-zip). Raw link: `magnet:?xt=urn:btih:a2ca83e177df5cb1966dfc1d262bc751e4987405&dn=rarbg_db.zip`.
 
 The dump was created by a person who originally shared it [here on reddit](https://www.reddit.com/r/PiratedGames/comments/13wjasv/comment/jmd5sbf/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button).
 
