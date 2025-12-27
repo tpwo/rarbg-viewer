@@ -53,7 +53,7 @@ form {
   margin-bottom: 0;
 }
 
-@media (min-width: 601px) {
+@media (min-width: 600px) {
   #category-select {
     order: 0;
     margin-right: 0.5rem;
@@ -62,7 +62,6 @@ form {
   .search-box {
     order: 1;
   }
-  #btn-search,
   .search-btn {
     order: 2;
   }
@@ -102,12 +101,6 @@ button,
   display: flex;
   align-items: center;
   gap: 0.5em;
-}
-
-input[type="button"]:hover,
-button:hover,
-.search-btn:hover {
-  background: var(--color-primary-light);
 }
 
 .search-box {
@@ -346,4 +339,42 @@ button:hover,
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 2rem auto;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0.5rem 0;
+}
+.site-brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+.site-brand .logo {
+  margin-right: 8px;
+}
+.logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: inline-block;
+}
+.site-title {
+  margin: 0;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: inherit;
+}
+
+.btn-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0rem;
+}
+.btn-icon i {
+  font-size: 1.5rem;
+  vertical-align: middle;
 }
