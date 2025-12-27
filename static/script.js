@@ -57,14 +57,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 0);
 
   if (query) {
-    resultsContainer.style.display = '';
-    paginationContainer.style.display = '';
+    if (resultsContainer) resultsContainer.classList.remove('hidden');
+    if (paginationContainer) paginationContainer.classList.remove('hidden');
 
     if (!query) return;
 
     // Show spinner
     resultsContainer.innerHTML = '<div class="spinner"></div>';
-    resultsContainer.style.display = '';
+    if (resultsContainer) resultsContainer.classList.remove('hidden');
 
     const category = getCategoryFromUrl();
     let url = `/results?search_query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`;
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
             query,
           );
         } else {
-          paginationContainer.style.display = 'none';
+          if (paginationContainer) paginationContainer.classList.add('hidden');
         }
       });
   }
@@ -167,26 +167,14 @@ function _renderPagination(
   }
 
   paginationContainer.innerHTML = `<div class="pagination-bar">${html.trim()}</div>`;
-  // Optional: add some minimal CSS for clarity
-  if (!document.getElementById('pagination-style')) {
-    const style = document.createElement('style');
-    style.id = 'pagination-style';
-    style.textContent = `
-                .pagination-bar { margin: 1em 0; font-size: 1.1em; text-align: center; }
-                .pagination-bar a { margin: 0 0.2em; text-decoration: none; color: #2d7dd2; font-weight: 500; }
-                .pagination-bar a:hover { text-decoration: underline; }
-                .pagination-bar .current-page { margin: 0 0.2em; font-weight: bold; color: #222; }
-            `;
-    document.head.appendChild(style);
-  }
 }
 
 function doSearch(searchBox, resultsContainer, paginationContainer) {
   var queryVal = searchBox ? searchBox.value : '';
   if (queryVal.length < 3) {
     resultsContainer.innerHTML = '<p>Please enter at least 3 characters to search.</p>';
-    resultsContainer.style.display = '';
-    paginationContainer.style.display = 'none';
+    if (resultsContainer) resultsContainer.classList.remove('hidden');
+    if (paginationContainer) paginationContainer.classList.add('hidden');
     if (searchBox) searchBox.focus();
     return;
   }
@@ -213,35 +201,29 @@ function _renderResults(
 ) {
   // Category icon SVGs (simple, recognizable)
   const categoryIcons = {
-    Movies: '<i class="bi bi-film" title="Movies" style="font-size: 1.25em;"></i>',
-    TV: '<i class="bi bi-tv" title="TV" style="font-size: 1.25em;"></i>',
-    Games: '<i class="bi bi-controller" title="Games" style="font-size: 1.25em;"></i>',
-    Music: '<i class="bi bi-music-note-beamed" title="Music" style="font-size: 1.25em;"></i>',
-    Books: '<i class="bi bi-book" title="Books" style="font-size: 1.25em;"></i>',
-    Software: '<i class="bi bi-cpu" title="Software" style="font-size: 1.25em;"></i>',
-    Adult: '<i class="bi bi-person-video" title="Adult" style="font-size: 1.25em;"></i>',
-    Other: '<i class="bi bi-folder" title="Other" style="font-size: 1.25em;"></i>',
+    Movies: '<i class="bi bi-film" title="Movies"></i>',
+    TV: '<i class="bi bi-tv" title="TV"></i>',
+    Games: '<i class="bi bi-controller" title="Games"></i>',
+    Music: '<i class="bi bi-music-note-beamed" title="Music"></i>',
+    Books: '<i class="bi bi-book" title="Books"></i>',
+    Software: '<i class="bi bi-cpu" title="Software"></i>',
+    Adult: '<i class="bi bi-person-video" title="Adult"></i>',
+    Other: '<i class="bi bi-folder" title="Other"></i>',
   };
 
-  resultsContainer.style.display = '';
+  if (resultsContainer) resultsContainer.classList.remove('hidden');
   // Per-page dropdown UI
   // Calculate current range
   const startIdx = totalCount === 0 ? 0 : (page - 1) * perPage + 1;
   const endIdx = Math.min(page * perPage, totalCount);
   const rangeText = totalCount === 0 ? '' : `${startIdx}-${endIdx}`;
-  const perPageHtml = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em; margin-top: 0.5em; padding-top: 0.5em;">
-            <div class="results-count" style="font-size: 1.08em; color: #444;">
-                ${rangeText ? `<span class='results-range'>Showing results ${rangeText}<br></span> ` : ''}${totalCount} total found
-            </div>
-            <div style="font-size: 1.08em; color: #444;">
-                <label for="per-page-select" style="margin-right: 0.4em;">Per page:</label>
-                <select id="per-page-select" style="font-size: 1em; padding: 0.1em 0.5em;">
-                    ${perPageOptions.map((opt) => `<option value="${opt}"${opt === perPage ? ' selected' : ''}>${opt}</option>`).join('')}
-                </select>
-            </div>
-        </div>`;
+  const perPageHtml = `<div class="per-page-bar">
+        <div class="results-count">${rangeText ? `<span class='results-range'>Showing results ${rangeText}<br></span> ` : ''}${totalCount} total found</div>
+        <div class="per-page-controls"><label for="per-page-select">Per page:</label><select id="per-page-select" class="per-page-select">${perPageOptions.map((opt) => `<option value="${opt}"${opt === perPage ? ' selected' : ''}>${opt}</option>`).join('')}</select></div>
+      </div>`;
   document.getElementById('per-page-container').innerHTML = perPageHtml;
-  document.getElementById('per-page-container').style.display = '';
+  const _ppc = document.getElementById('per-page-container');
+  if (_ppc) _ppc.classList.remove('hidden');
   setTimeout(() => {
     const select = document.getElementById('per-page-select');
     if (select) {
@@ -264,13 +246,19 @@ function _renderResults(
     }
   }, 0);
   if (results.length === 0) {
-    document.getElementById('per-page-container').innerHTML = '';
-    document.getElementById('per-page-container').style.display = 'none';
-    resultsContainer.innerHTML = '<p>No results found.</p>';
-    paginationContainer.style.display = 'none';
+    const _ppc2 = document.getElementById('per-page-container');
+    if (_ppc2) {
+      _ppc2.innerHTML = '';
+      _ppc2.classList.add('hidden');
+    }
+    if (resultsContainer) {
+      resultsContainer.innerHTML = '<p>No results found.</p>';
+      resultsContainer.classList.remove('hidden');
+    }
+    if (paginationContainer) paginationContainer.classList.add('hidden');
     return;
   }
-  paginationContainer.style.display = '';
+  if (paginationContainer) paginationContainer.classList.remove('hidden');
   // Sorting state
   if (!window._rtSortState) {
     window._rtSortState = { col: sortCol, dir: sortDir };
@@ -298,15 +286,15 @@ function _renderResults(
                         const icon = categoryIcons[topCat] || categoryIcons.Other;
                         return `
                         <tr class="result-card-row">
-                            <td class="result-title" style="display: flex; align-items: center; gap: 0.5em;">
-                                <span class="cat-icon" title="${escapeHtml(topCat)}">${icon}</span>
-                                <span style="vertical-align: middle;">${escapeHtml(r.title)}</span>
-                            </td>
+                          <td class="result-title">
+                            <span class="cat-icon" title="${escapeHtml(topCat)}">${icon}</span>
+                            <span class="result-title-text">${escapeHtml(r.title)}</span>
+                          </td>
                             <td>${escapeHtml(r.date)}</td>
                             <td>${humanReadableSize(Number(r.size))}</td>
                             <td>
                                 <a href="${r.magnet}" class="magnet-link" title="Download via Magnet">
-                                    <i class="bi bi-link" style="font-size: 1.25em;"></i>
+                                  <i class="bi bi-link magnet-icon"></i>
                                 </a>
                             </td>
                         </tr>
@@ -319,7 +307,6 @@ function _renderResults(
   // Add sorting event listeners
   setTimeout(() => {
     document.querySelectorAll('.results-table th.sortable').forEach((th) => {
-      th.style.cursor = 'pointer';
       th.onclick = () => {
         const col = th.getAttribute('data-col');
         if (sortState.col === col) {
@@ -342,25 +329,6 @@ function _renderResults(
       };
     });
   }, 0);
-  if (!document.getElementById('magnet-icon-style')) {
-    const style = document.createElement('style');
-    style.id = 'magnet-icon-style';
-    style.textContent = `
-                .magnet-link { margin-left: 4px; vertical-align: middle; }
-                .magnet-icon { vertical-align: middle; color: #e74c3c; transition: color 0.2s; }
-                .magnet-link:hover .magnet-icon { color: #c0392b; }
-                .results-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-                .results-table th, .results-table td { padding: 0.35rem 0.6rem; text-align: left; vertical-align: middle; user-select: none; }
-                .results-table th.sortable { color: #2d7dd2; }
-                .results-table th.sortable:hover { text-decoration: underline; }
-                .results-table th { background: #f4faff; font-weight: 600; border-bottom: 1px solid #e0e0e0; }
-                .result-card-row { background: #fff; border-radius: 4px; transition: box-shadow 0.2s; }
-                .result-card-row:hover { box-shadow: 0 2px 8px 0 #e0e8f0; }
-                .result-title { font-size: 1rem; font-weight: 500; }
-                .badge { display: inline-block; background: #2d7dd2; color: #fff; border-radius: 4px; padding: 0.1em 0.6em; font-size: 0.85em; margin-right: 0.5em; }
-            `;
-    document.head.appendChild(style);
-  }
 }
 
 function getTopLevelCategory(cat) {
