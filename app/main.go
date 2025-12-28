@@ -1,30 +1,20 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
-	"os"
+	"strconv"
 )
 
 func main() {
-
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	http.Handle("/", fs)
 
-	http.HandleFunc("/", root)
+	var port = 8000
+	log.Printf("Listening on http://127.0.0.1:%d\n", port)
+	log.Fatal(
+		http.ListenAndServe(":"+strconv.Itoa(8000), nil),
+	)
 
-	fmt.Println("Listening...")
-	http.ListenAndServe(":8000", nil)
-}
-
-func root(w http.ResponseWriter, req *http.Request) {
-	w.Write(returnFile("static/index.html"))
-}
-
-func returnFile(path string) []byte {
-	fileBytes, err := os.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-	return fileBytes
 }
