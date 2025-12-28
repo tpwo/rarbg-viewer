@@ -78,12 +78,11 @@ app = FastAPI()
 CONN = get_connection(DB_FILE)
 ensure_fts5_table()
 app.mount('/static', StaticFiles(directory='static', html=True), 'static')
-app.mount('/templates', StaticFiles(directory='templates', html=True), 'templates')
 
 
 @app.get('/')
 def main_search() -> object:
-    return FileResponse('templates/search.html')
+    return FileResponse('static/index.html')
 
 
 @app.get('/favicon.ico')
@@ -103,7 +102,7 @@ def search_query_redirect(query: str) -> RedirectResponse:
 
 @app.get('/search/{query}/{page}/')
 def search_query_page() -> object:
-    return FileResponse('templates/search.html')
+    return FileResponse('static/index.html')
 
 
 @app.get('/results')
