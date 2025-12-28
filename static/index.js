@@ -123,22 +123,19 @@ function fetchAndRender(state, opts = { push: false, replace: false }) {
 
 // Wire initial page load and UI events
 document.addEventListener('DOMContentLoaded', () => {
-  const ts = document.getElementById('timestamp');
-  if (ts) ts.innerHTML = new Date().toLocaleString();
+  timestamp.innerHTML = new Date().toLocaleString();
   const initialState = readStateFromUrl();
   if (initialState.query) fetchAndRender(initialState, { replace: true });
 
   // Search form -> SPA search
   document.getElementById('btn-search').addEventListener('click', () => {
-    const q = searchbox ? searchbox.value : '';
-    const category = categories ? categories.value : '';
     const state = {
-      query: q,
+      query: searchbox.value,
       page: 1,
       perPage: PER_PAGE_OPTIONS[0],
       sortCol: 'title',
       sortDir: 'asc',
-      category,
+      category: categories.value,
     };
     fetchAndRender(state, { push: true });
   });
