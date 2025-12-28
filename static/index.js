@@ -257,8 +257,8 @@ function _renderResults(
     ${rangeText ? `<span class='results-range'>Showing results ${rangeText}<br></span> ` : ''}${totalCount} total found
   </div>
   <div class="per-page-controls">
-    <label for="per-page-select">Per page:</label>
-    <select id="per-page-select" class="per-page-select">
+    <label for="perPageSelect">Per page:</label>
+    <select id="perPageSelect" class="per-page-select">
       ${perPageOptions.map((opt) => `<option value="${opt}"${opt === perPage ? ' selected' : ''}>${opt}</option>`).join('')}
     </select>
   </div>
@@ -266,11 +266,10 @@ function _renderResults(
   perPageContainer.innerHTML = perPageHtml;
   if (perPageContainer) perPageContainer.classList.remove('hidden');
   setTimeout(() => {
-    const select = document.getElementById('per-page-select');
-    if (select) {
-      select.onchange = () => {
+    if (perPageSelect) {
+      perPageSelect.onchange = () => {
         const params = new URLSearchParams(window.location.search);
-        params.set('per_page', select.value);
+        params.set('per_page', perPageSelect.value);
         // Always go to page 1 when per-page changes
         params.set('page', '1');
         // If using /search/{query}/{page}/ path, update location accordingly
