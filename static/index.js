@@ -2,7 +2,6 @@ import { CATEGORY_ICNOS, SORT_ICONS } from './consts.js';
 import { escapeHtml, getTopLevelCategory, humanReadableSize } from './helpers.js';
 
 // Elements
-const SEARCH_BOX = document.getElementById('search-box');
 const RESULTS_CONTAINER = document.getElementById('results');
 const PAGINATION_CONTAINER = document.getElementById('pagination');
 const CATEGORY_SELECT = document.getElementById('category-select');
@@ -136,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Search form -> SPA search
   document.getElementById('btn-search').addEventListener('click', () => {
-    const q = SEARCH_BOX ? SEARCH_BOX.value : '';
+    const q = searchbox ? searchbox.value : '';
     const category = CATEGORY_SELECT ? CATEGORY_SELECT.value : '';
     const state = {
       query: q,
@@ -148,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     fetchAndRender(state, { push: true });
   });
-  SEARCH_BOX.addEventListener('keydown', (ev) => {
+  searchbox.addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter') {
       ev.preventDefault();
       document.getElementById('btn-search').click();
@@ -158,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Category select
   if (CATEGORY_SELECT) {
     CATEGORY_SELECT.addEventListener('change', () => {
-      const q = SEARCH_BOX ? SEARCH_BOX.value : '';
+      const q = searchbox ? searchbox.value : '';
       if (!q) return; // nothing to search
       const state = readStateFromUrl();
       state.query = q;
@@ -366,7 +365,7 @@ function _renderResults(
 }
 
 function _checkMinQueryLength() {
-  if (SEARCH_BOX.value.length < 3) {
+  if (searchbox.value.length < 3) {
     RESULTS_CONTAINER.innerHTML = '<p>Please enter at least 3 characters to search.</p>';
     if (PAGINATION_CONTAINER) hide(PAGINATION_CONTAINER);
     return;
