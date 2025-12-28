@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (initialState.query) fetchAndRender(initialState, { replace: true });
 
   // Search form -> SPA search
-  document.getElementById('btn-search').addEventListener('click', () => {
+  btnSearch.addEventListener('click', () => {
     const state = {
       query: searchbox.value,
       page: 1,
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
   searchbox.addEventListener('keydown', (ev) => {
     if (ev.key === 'Enter') {
       ev.preventDefault();
-      document.getElementById('btn-search').click();
+      btnSearch.click();
     }
   });
 
