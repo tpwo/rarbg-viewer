@@ -221,19 +221,53 @@ function fetchAndRender(state, opts = { push: false, replace: false }) {
 </table>
         `;
 
-      if ((data.result || []).length > 0) {
-        _renderPagination(
-          data.total_count || 0,
-          pagination,
-          state.perPage || 20,
-          state.sortCol || 'title',
-          state.sortDir || 'asc',
-          state.page || 1,
-          state.query || '',
-        );
-      } else {
-        if (pagination) hide(pagination);
+      pagination.style.display = '';
+      let totalPages = Math.ceil(data.total_count / state.perPage);
+      if (totalPages === 0) totalPages = 1;
+      let html = '';
+      // Preserve sort params in pagination links
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('page')) params.delete('page');
+      params.set('sort_col', state.sortCol);
+      params.set('sort_dir', state.sortDir);
+      const paramStr = params.toString() ? `?${params.toString()}` : '';
+
+      // Helper to build page link
+      function pageLink(label, p, extraClass = '') {
+        if (p < 1 || p > totalPages) return '';
+        if (p === state.page) {
+          return `<span class="current-page${extraClass ? ` ${extraClass}` : ''}">${p}</span>`;
+        }
+        return `<a href="/search/${encodeURIComponent(state.query)}/${p}/${paramStr}" class="${extraClass}">${label}</a>`;
       }
+
+      // How many page numbers to show at once
+      const windowSize = 7;
+      let start = Math.max(1, state.page - Math.floor(windowSize / 2));
+      let end = start + windowSize - 1;
+      if (end > totalPages) {
+        end = totalPages;
+        start = Math.max(1, end - windowSize + 1);
+      }
+
+      // First/<<
+      if (state.page > 1) {
+        html += `${pageLink('First', 1, 'first-page')} `;
+        html += `${pageLink('&lt;&lt;', state.page - 1, 'prev-page')} `;
+      }
+
+      // Page numbers
+      for (let i = start; i <= end; i++) {
+        html += `${pageLink(i, i)} `;
+      }
+
+      // >>/Last
+      if (state.page < totalPages) {
+        html += `${pageLink('&gt;&gt;', state.page + 1, 'next-page')} `;
+        html += pageLink('Last', totalPages, 'last-page');
+      }
+
+      pagination.innerHTML = `<div class="pagination-bar">${html.trim()}</div>`;
 
       // pagination links -> SPA
       if (pagination) {
@@ -253,62 +287,4 @@ function fetchAndRender(state, opts = { push: false, replace: false }) {
       console.error('Failed to fetch results', err);
       if (data.result) data.result.innerHTML = '<p>Error loading results.</p>';
     });
-}
-
-function _renderPagination(
-  totalCount,
-  paginationContainer,
-  perPage,
-  sortCol,
-  sortDir,
-  page,
-  query,
-) {
-  paginationContainer.style.display = '';
-  let totalPages = Math.ceil(totalCount / perPage);
-  if (totalPages === 0) totalPages = 1;
-  let html = '';
-  // Preserve sort params in pagination links
-  const params = new URLSearchParams(window.location.search);
-  if (params.has('page')) params.delete('page');
-  params.set('sort_col', sortCol);
-  params.set('sort_dir', sortDir);
-  const paramStr = params.toString() ? `?${params.toString()}` : '';
-
-  // Helper to build page link
-  function pageLink(label, p, extraClass = '') {
-    if (p < 1 || p > totalPages) return '';
-    if (p === page) {
-      return `<span class="current-page${extraClass ? ` ${extraClass}` : ''}">${p}</span>`;
-    }
-    return `<a href="/search/${encodeURIComponent(query)}/${p}/${paramStr}" class="${extraClass}">${label}</a>`;
-  }
-
-  // How many page numbers to show at once
-  const windowSize = 7;
-  let start = Math.max(1, page - Math.floor(windowSize / 2));
-  let end = start + windowSize - 1;
-  if (end > totalPages) {
-    end = totalPages;
-    start = Math.max(1, end - windowSize + 1);
-  }
-
-  // First/<<
-  if (page > 1) {
-    html += `${pageLink('First', 1, 'first-page')} `;
-    html += `${pageLink('&lt;&lt;', page - 1, 'prev-page')} `;
-  }
-
-  // Page numbers
-  for (let i = start; i <= end; i++) {
-    html += `${pageLink(i, i)} `;
-  }
-
-  // >>/Last
-  if (page < totalPages) {
-    html += `${pageLink('&gt;&gt;', page + 1, 'next-page')} `;
-    html += pageLink('Last', totalPages, 'last-page');
-  }
-
-  paginationContainer.innerHTML = `<div class="pagination-bar">${html.trim()}</div>`;
 }
