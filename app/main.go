@@ -149,6 +149,8 @@ func main() {
 
 func getResults(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		logRequest(r)
+
 		query := r.URL.Query()
 
 		searchQuery := query.Get("search_query")
@@ -275,4 +277,8 @@ func getResults(db *sql.DB) http.HandlerFunc {
 		json.NewEncoder(w).Encode(response)
 
 	}
+}
+
+func logRequest(r *http.Request) {
+	log.Printf(`%s - "%s %s %s"`, r.RemoteAddr, r.Method, r.URL, r.Proto)
 }
