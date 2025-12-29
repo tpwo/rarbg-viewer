@@ -10,6 +10,10 @@ go: build
 build:
 	go build -v -ldflags="-s -w" --tags fts5 -o rarbg-view ./app/main.go
 
+# start server in debug mode (more logging)
+debug:
+	DEBUG=true go run -v --tags fts5 ./app/main.go
+
 # start server
 run:
 	tox run -e run

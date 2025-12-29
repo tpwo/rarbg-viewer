@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -83,6 +84,13 @@ type Response struct {
 // Make sure that this file is present
 const dbFile = "./db/rarbg_db.sqlite"
 
+var Debug bool
+
+func init() {
+	debugEnv := os.Getenv("DEBUG")
+	Debug = strings.ToLower(debugEnv) == "true"
+}
+
 func main() {
 	db, err := sql.Open("sqlite3", dbFile)
 	if err != nil {
@@ -152,7 +160,7 @@ func main() {
 
 func getResults(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logRequest(r)
+		LogRequest(r)
 
 		query := r.URL.Query()
 
@@ -195,7 +203,7 @@ func getResults(db *sql.DB) http.HandlerFunc {
 			sortDir = "asc"
 		}
 
-		log.Printf(`
+		LogDebug(`
 			Query parameters:
 				search_query=%s
 				page=%d
@@ -211,7 +219,7 @@ func getResults(db *sql.DB) http.HandlerFunc {
 			WHERE items_fts MATCH "%s"%s`,
 			searchQuery, catFilter,
 		)
-		log.Printf("COUNT(*) query: %s", queryStrCount)
+		LogDebug("COUNT(*) query: %s", queryStrCount)
 		var count int
 		err = db.QueryRow(queryStrCount).Scan(&count)
 		if err != nil {
@@ -219,7 +227,7 @@ func getResults(db *sql.DB) http.HandlerFunc {
 			log.Printf("ERROR: %s", err)
 			return
 		}
-		log.Printf("Total count: %d", count)
+		LogDebug("Total count: %d", count)
 
 		offset := (page - 1) * perPage
 
@@ -232,7 +240,7 @@ func getResults(db *sql.DB) http.HandlerFunc {
 			LIMIT %d OFFSET %d`,
 			searchQuery, catFilter, sortCol, sortDir, perPage, offset,
 		)
-		log.Printf("SELECT query: %s", queryStr)
+		LogDebug("SELECT query: %s", queryStr)
 
 		rows, err := db.Query(queryStr)
 		if err != nil {
@@ -282,6 +290,12 @@ func getResults(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func logRequest(r *http.Request) {
+func LogRequest(r *http.Request) {
 	log.Printf(`%s - "%s %s %s"`, r.RemoteAddr, r.Method, r.URL, r.Proto)
+}
+
+func LogDebug(s string, args ...any) {
+	if Debug {
+		log.Printf(s, args...)
+	}
 }
