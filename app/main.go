@@ -229,7 +229,7 @@ func getUrlParams(q url.Values) params {
 		perPage = 20
 	}
 
-	categories, ok := CATEGORY_MAP[q.Get("category")]
+	categories, ok := CategoryMap[q.Get("category")]
 	if !ok {
 		categories = nil
 	}

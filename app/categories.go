@@ -41,7 +41,7 @@ const (
 	XXX = "xxx"
 )
 
-var CATEGORY_MAP = map[string][]string{
+var CategoryMap = map[string][]string{
 	"Movies": {
 		MOVIES, MOVIES_BD_FULL, MOVIES_BD_REMUX, MOVIES_X264, MOVIES_X264_3D,
 		MOVIES_X264_4K, MOVIES_X264_720, MOVIES_X265, MOVIES_X265_4K,
