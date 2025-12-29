@@ -1,6 +1,4 @@
 *.bak
-*.pyc
 *.zip
-.tox
 db/*.sqlite
 rarbg-view

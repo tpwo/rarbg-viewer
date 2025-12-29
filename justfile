@@ -2,8 +2,8 @@
 help:
 	just --list
 
-# start golang server
-go: build
+# start server
+run: build
 	./rarbg-view
 
 # compile the app (debug symbols removed with `-ldflags=-w`)
@@ -13,14 +13,6 @@ build:
 # start server in debug mode (more logging)
 debug:
 	DEBUG=true go run -v --tags fts5 ./app
-
-# start server
-run:
-	tox run -e run
-
-# start server in auto-reload mode
-listen:
-	tox run -e run -- --reload
 
 # start server in docker
 up:

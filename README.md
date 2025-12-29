@@ -103,6 +103,6 @@ To run without docker:
 
     just run
 
-To run with auto-reload mode:
+Compile the app without running it:
 
-    just listen
+    just build
