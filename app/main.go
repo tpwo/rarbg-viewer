@@ -45,13 +45,6 @@ func main() {
 
 func getResults(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var count int
-		err := db.QueryRow("SELECT COUNT(*) FROM items_fts").Scan(&count)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Print(count)
-
 		query := r.URL.Query()
 
 		searchQuery := query.Get("search_query")
@@ -78,6 +71,17 @@ func getResults(db *sql.DB) http.HandlerFunc {
 			sortDir = "asc"
 		}
 
+		var count int
+		err = db.QueryRow(`
+			SELECT COUNT(*) FROM items_fts
+			WHERE items_fts MATCH (?)`,
+			searchQuery,
+		).Scan(&count)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Print(count)
+
 		results := []Result{
 			{Title: "Test item 1", Cat: "xxx", Date: "2025-01-01", Size: 100, Magnet: "some-magnet-link"},
 			{Title: "Test item 2", Cat: "ebooks", Date: "2020-01-01", Size: 50, Magnet: "some-magnet-link"},
@@ -85,7 +89,7 @@ func getResults(db *sql.DB) http.HandlerFunc {
 
 		response := Response{
 			Result:     results,
-			TotalCount: 2,
+			TotalCount: count,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
