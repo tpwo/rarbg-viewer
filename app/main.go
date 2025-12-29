@@ -282,7 +282,9 @@ func getCatFilter(c []string) string {
 	} else {
 		catFilter = ""
 	}
-	LogDebug(catFilter)
+	// Done like that to avoid compiler warning:
+	// 	non-constant format string in call to
+	LogDebug("%s", catFilter)
 	return catFilter
 }
 
