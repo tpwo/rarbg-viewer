@@ -33,6 +33,7 @@ const dbFile = "./db/rarbg_db.sqlite"
 var Debug bool
 var Port int
 
+// Init DEBUG flag and operating Port from os.Getenv
 func init() {
 	debugEnv := os.Getenv("DEBUG")
 	Debug = strings.ToLower(debugEnv) == "true"
@@ -46,6 +47,7 @@ func init() {
 	}
 }
 
+// Open DB connection and start HTTP server
 func main() {
 	db, err := sql.Open("sqlite3", dbFile)
 	if err != nil {
@@ -53,8 +55,36 @@ func main() {
 	}
 	defer db.Close()
 
+	prepareFTS5(db)
+
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/", fs)
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	http.HandleFunc("/results/", getResults(db))
+
+	log.Printf("Listening on http://127.0.0.1:%d\n", Port)
+	log.Fatal(
+		http.ListenAndServe(":"+strconv.Itoa(Port), nil),
+	)
+}
+
+// Make sure FTS5 tables are prepared to be used.
+//
+// Note that after initial creation FTS5 tables are useless
+// -- they have no actual data but at the same time
+// they are non-empty, i.e. pure COUNT(*) returns non-zero rows.
+//
+// To overcome this problem, we JOIN with items and search for a pattern
+// which exists in items.
+//
+// Here we query for `abc`, as it's present in a small number in the DB.
+// And the DB's state is static in this project, so this is good enough.
+//
+// If FTS5 was already properly populated before, this function does
+// nothing and quickly exits.
+func prepareFTS5(db *sql.DB) {
 	log.Println("Ensuring FTS5 table 'items_fts' exists...")
-	_, err = db.Exec(`
+	_, err := db.Exec(`
 		CREATE VIRTUAL TABLE IF NOT EXISTS items_fts USING fts5(
 			title,
 			content='items',
@@ -63,18 +93,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Check if FTS5 table is empty
-	//
-	// This is a bit stupid, but this table is non-empty,
-	// i.e. pure COUNT(*) returns non-zero rows, after the query
-	// above creates items_fts.
-	//
-	// items_fts exists now, and we still have to fill it with data.
-	//
-	// So we check for sample match `abc` which returns something if
-	// FTS5 is properly populated. DB state is quite static in this
-	// project, so this is good enough for now.
 	var count int
 	err = db.QueryRow(`
 		SELECT COUNT(*) FROM items_fts
@@ -99,17 +117,6 @@ func main() {
 	} else {
 		log.Println("FTS5 table 'items_fts' already populated.")
 	}
-
-	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/", fs)
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.HandleFunc("/results/", getResults(db))
-
-	log.Printf("Listening on http://127.0.0.1:%d\n", Port)
-	log.Fatal(
-		http.ListenAndServe(":"+strconv.Itoa(Port), nil),
-	)
-
 }
 
 func getResults(db *sql.DB) http.HandlerFunc {
