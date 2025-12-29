@@ -3,7 +3,7 @@ services:
     container_name: server
     build:
       dockerfile: Dockerfile
-    command: uvicorn app.main:app --port 8000 --host 0.0.0.0
+    command: ./rarbg-view
     ports:
     - 8000:8000
     volumes:

@@ -3,3 +3,4 @@
 *.zip
 .tox
 db/*.sqlite
+rarbg-view
