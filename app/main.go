@@ -187,7 +187,8 @@ func getResults(db *sql.DB) http.HandlerFunc {
 		}
 		defer rows.Close()
 
-		var results []Result
+		// Initialize it as empty list to avoid returning nil if query returns nothing
+		results := make([]Result, 0)
 
 		for rows.Next() {
 			var title string
