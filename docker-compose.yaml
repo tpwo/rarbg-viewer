@@ -1,7 +1,7 @@
 services:
   rarbg-view:
     container_name: server
-    image: ghcr.io/tpwo/rarbg-view:test
+    image: ghcr.io/tpwo/rarbg-view:stable
     command: ./rarbg-view
     # Default port is 1337. You can overwrite it in `.env` file
     ports:
