@@ -106,3 +106,7 @@ To run without docker:
 Compile the app without running it:
 
     just build
+
+Run without docker in DEBUG mode (more logging):
+
+    just debug
