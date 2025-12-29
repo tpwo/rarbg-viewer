@@ -29,6 +29,27 @@ You need a copy of sqlite DB to run this app yourself. Happily, it's available u
 
 The dump was created by a person who originally shared it [on reddit](https://www.reddit.com/r/PiratedGames/comments/13wjasv/comment/jmd5sbf/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button).
 
+### Fist run
+
+After you place DB file under `db/rarbg_db.sqlite`, backend will create SQLITE FTS5 table inside it to make querying the DB much faster. This takes some time, but happens only during the first run. You can see sample logs here:
+
+```shell
+$ just up
+docker compose up --build --remove-orphans
+[+] Building 0.7s (18/18) FINISHED
+<...>
+[+] Running 2/2
+ ✔ rarbg-view-rarbg-view  Built                                                                                                      0.0s
+ ✔ Container server       Recreated                                                                                                  0.1s
+Attaching to server
+server  | 2025/12/29 15:23:05 Ensuring FTS5 table 'items_fts' exists...
+server  | 2025/12/29 15:23:06 FTS5 table 'items_fts' is empty. Populating from 'items' table...
+server  | 2025/12/29 15:23:10 FTS5 table 'items_fts' population complete.
+server  | 2025/12/29 15:23:10 Listening on http://127.0.0.1:8000
+server  |
+server  | 2025/12/29 15:23:27 192.168.65.1:37128 - "GET /results/?search_query=abc&page=1&per_page=20&category=&sort_col=title&sort_dir=asc HTTP/1.1"
+```
+
 ### Schema
 
 Note that you can run the app with any SQLite database compatible with this schema:
