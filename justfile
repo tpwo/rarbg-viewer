@@ -14,6 +14,14 @@ build:
 debug:
 	DEBUG=true go run -v --tags fts5 ./app
 
-# start server in docker
+# (docker) start server
 up:
-	docker compose up --build --remove-orphans
+	docker compose up --detach
+
+# (docker) pull newest image and start server
+update:
+	docker compose up --detach --pull always
+
+# (docker) stop server
+stop:
+	docker compose stop

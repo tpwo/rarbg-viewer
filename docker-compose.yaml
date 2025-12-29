@@ -12,3 +12,4 @@ services:
     volumes:
     - /etc/localtime:/etc/localtime:ro
     - ./db:/app/db
+    restart: unless-stopped

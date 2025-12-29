@@ -34,20 +34,14 @@ The dump was created by a person who originally shared it [on reddit](https://ww
 After you place DB file under `db/rarbg_db.sqlite`, backend will create SQLITE FTS5 table inside it to make querying the DB much faster. This takes some time, but happens only during the first run. You can see sample logs here:
 
 ```shell
-$ just up
-docker compose up --build --remove-orphans
-[+] Building 0.7s (18/18) FINISHED
-<...>
-[+] Running 2/2
- ✔ rarbg-view-rarbg-view  Built                                                                                                      0.0s
- ✔ Container server       Recreated                                                                                                  0.1s
-Attaching to server
-server  | 2025/12/29 15:23:05 Ensuring FTS5 table 'items_fts' exists...
-server  | 2025/12/29 15:23:06 FTS5 table 'items_fts' is empty. Populating from 'items' table...
-server  | 2025/12/29 15:23:10 FTS5 table 'items_fts' population complete.
-server  | 2025/12/29 15:23:10 Listening on http://127.0.0.1:1337
-server  |
-server  | 2025/12/29 15:23:27 192.168.65.1:37128 - "GET /results/?search_query=abc&page=1&per_page=20&category=&sort_col=title&sort_dir=asc HTTP/1.1"
+$ just run
+go build -v -ldflags="-s -w" --tags fts5 -o rarbg-view ./app
+./rarbg-view
+2025/12/29 15:23:05 Ensuring FTS5 table 'items_fts' exists...
+2025/12/29 15:23:06 FTS5 table 'items_fts' is empty. Populating from 'items' table...
+2025/12/29 15:23:10 FTS5 table 'items_fts' population complete.
+2025/12/29 15:23:10 Listening on http://127.0.0.1:1337
+2025/12/29 15:23:27 127.0.0.1:51068 - "GET /results/?search_query=abc&page=1&per_page=20&category=&sort_col=title&sort_dir=asc HTTP/1.1"
 ```
 
 ### Change port
@@ -136,6 +130,10 @@ xxx
 App is dockerized with compose, and can be started with `just`:
 
     just up
+
+To run it while also downloading the newest image:
+
+    just update
 
 To run without docker:
 
