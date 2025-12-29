@@ -1,10 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Result struct {
@@ -21,6 +24,33 @@ type Response struct {
 }
 
 func main() {
+	db, err := sql.Open("sqlite3", "./db/rarbg_db.sqlite")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	rows, err := db.Query(`
+SELECT COUNT(*) FROM items_fts
+`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var count int
+		err := rows.Scan(&count)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Print(count)
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 	http.Handle("/static/", http.StripPrefix("/static/", fs))

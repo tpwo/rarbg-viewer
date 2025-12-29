@@ -2,6 +2,10 @@
 help:
 	just --list
 
+# start golang server
+go:
+	go run --tags fts5 app/main.go
+
 # start server
 run:
 	tox run -e run
