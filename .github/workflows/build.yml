@@ -26,38 +26,23 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    # Automatic builds -> `latest` tag
-    - name: Build & Push (latest)
-      if: github.event_name != 'workflow_dispatch'
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        platforms: linux/amd64,linux/arm64
-        push: true
-        tags: |
-          ghcr.io/${{ github.repository }}:${{ github.sha }}
-          ghcr.io/${{ github.repository }}:latest
+    - name: Create Docker tag
+      id: tag
+      run: |
+        if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${GITHUB_REF}" == "refs/heads/main" ]]; then
+          echo "value=stable" >> "$GITHUB_OUTPUT"
+        elif [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" && "${GITHUB_REF}" != "refs/heads/main" ]]; then
+          echo "value=test" >> "$GITHUB_OUTPUT"
+        else
+          echo "value=latest" >> "$GITHUB_OUTPUT"
+        fi
 
-    # Manual run on main -> `stable` tag
-    - name: Build & Push (stable)
-      if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    - name: Build & Push `${{ steps.tag.outputs.value }}` tag
       uses: docker/build-push-action@v5
       with:
         context: .
         platforms: linux/amd64,linux/arm64
         push: true
         tags: |
+          ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.value }}
           ghcr.io/${{ github.repository }}:${{ github.sha }}
-          ghcr.io/${{ github.repository }}:stable
-
-    # Manual run on any other branch -> `test` tag
-    - name: Build & Push (test)
-      if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        platforms: linux/amd64,linux/arm64
-        push: true
-        tags: |
-          ghcr.io/${{ github.repository }}:${{ github.sha }}
-          ghcr.io/${{ github.repository }}:test
