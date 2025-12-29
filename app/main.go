@@ -87,6 +87,53 @@ func main() {
 	}
 	defer db.Close()
 
+	log.Println("Ensuring FTS5 table 'items_fts' exists...")
+	_, err = db.Exec(`
+		CREATE VIRTUAL TABLE IF NOT EXISTS items_fts USING fts5(
+			title,
+			content='items',
+			content_rowid='rowid')`,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Check if FTS5 table is empty
+	//
+	// This is a bit stupid, but this table is non-empty,
+	// i.e. pure COUNT(*) returns non-zero rows, after the query
+	// above creates items_fts.
+	//
+	// items_fts exists now, and we still have to fill it with data.
+	//
+	// So we check for sample match `abc` which returns something if
+	// FTS5 is properly populated. DB state is quite static in this
+	// project, so this is good enough for now.
+	var count int
+	err = db.QueryRow(`
+		SELECT COUNT(*) FROM items_fts
+		JOIN items i on i.rowid = items_fts.rowid
+		WHERE items_fts MATCH "abc"`,
+	).Scan(&count)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if count == 0 {
+		log.Println("FTS5 table 'items_fts' is empty. Populating from 'items' table...")
+		_, err = db.Exec(`
+			INSERT INTO items_fts(rowid, title)
+			SELECT rowid, title FROM items`,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("FTS5 table 'items_fts' population complete.")
+
+	} else {
+		log.Println("FTS5 table 'items_fts' already populated.")
+	}
+
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
@@ -177,8 +224,7 @@ func getResults(db *sql.DB) http.HandlerFunc {
 			JOIN items i ON i.rowid = items_fts.rowid
 			WHERE items_fts MATCH "%s"%s
 			ORDER BY i."%s" %s
-			LIMIT %d OFFSET %d
-			`,
+			LIMIT %d OFFSET %d`,
 			searchQuery, catFilter, sortCol, sortDir, perPage, offset,
 		)
 		log.Printf("SELECT query: %s", queryStr)
