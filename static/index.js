@@ -170,7 +170,7 @@ function fetchAndRender(state) {
     <thead>
         <tr>
             <th class="sortable" data-col="title">Name ${state.sortCol === 'title' ? SORT_ICONS[state.sortDir] : ''}</th>
-            <th class="sortable" data-col="date">Date ${state.sortCol === 'date' ? SORT_ICONS[state.sortDir] : ''}</th>
+            <th class="sortable" data-col="dt">Date ${state.sortCol === 'dt' ? SORT_ICONS[state.sortDir] : ''}</th>
             <th class="sortable" data-col="size">Size ${state.sortCol === 'size' ? SORT_ICONS[state.sortDir] : ''}</th>
             <th></th>
         </tr>

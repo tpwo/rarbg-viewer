@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -85,16 +86,18 @@ func getResults(db *sql.DB) http.HandlerFunc {
 		offset := (page - 1) * perPage
 
 		// TODO: cat_filter needs to be implemented
-		rows, err := db.Query(`
+		queryStr := fmt.Sprintf(`
 			SELECT i.title, i.cat, i.dt, i.size, i.hash
 			FROM items_fts
 			JOIN items i ON i.rowid = items_fts.rowid
-			WHERE items_fts MATCH ?
-			ORDER BY i."title" ASC
-			LIMIT ? OFFSET ?
+			WHERE items_fts MATCH "%s"
+			ORDER BY i."%s" %s
+			LIMIT %d OFFSET %d
 			`,
-			searchQuery, perPage, offset,
+			searchQuery, sortCol, sortDir, perPage, offset,
 		)
+
+		rows, err := db.Query(queryStr)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -112,7 +115,8 @@ func getResults(db *sql.DB) http.HandlerFunc {
 			if err != nil {
 				log.Fatal(err)
 			}
-			res := Result{title, cat, dt, size, hash}
+			magnet := fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s", hash, title)
+			res := Result{title, cat, dt, size, magnet}
 			results = append(results, res)
 		}
 

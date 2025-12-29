@@ -57,9 +57,9 @@ def get_results(
     offset = (page - 1) * per_page
     cats = CATEGORY_MAP.get(category) if category else None
     # Validate sort_col and sort_dir
-    allowed_cols = {'title', 'date', 'size'}
+    allowed_cols = {'title', 'dt', 'size'}
     allowed_dirs = {'asc', 'desc'}
-    col_map = {'title': 'title', 'date': 'dt', 'size': 'size'}
+    col_map = {'title': 'title', 'dt': 'dt', 'size': 'size'}
     sort_col_sql = col_map.get(sort_col, 'title')
     sort_dir_sql = 'ASC' if sort_dir.lower() == 'asc' else 'DESC'
 
