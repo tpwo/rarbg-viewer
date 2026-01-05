@@ -107,7 +107,7 @@ func prepareFTS5(db *sql.DB) {
 	}
 }
 
-type result struct {
+type Result struct {
 	Title  string `json:"title"`
 	Cat    string `json:"cat"`
 	Date   string `json:"date"`
@@ -115,8 +115,8 @@ type result struct {
 	Magnet string `json:"magnet"`
 }
 
-type response struct {
-	Result     []result `json:"result"`
+type Response struct {
+	Result     []Result `json:"result"`
 	TotalCount int      `json:"total_count"`
 }
 
@@ -168,7 +168,7 @@ func getResults(db *sql.DB) http.HandlerFunc {
 		defer rows.Close()
 
 		// Initialize it as empty list to avoid returning nil if query returns nothing
-		results := make([]result, 0)
+		results := make([]Result, 0)
 
 		for rows.Next() {
 			var title string
@@ -192,11 +192,11 @@ func getResults(db *sql.DB) http.HandlerFunc {
 
 			magnet := fmt.Sprintf("magnet:?xt=urn:btih:%s&dn=%s", hash, title)
 
-			res := result{title, cat, dt, intSize, magnet}
+			res := Result{title, cat, dt, intSize, magnet}
 			results = append(results, res)
 		}
 
-		response := response{
+		response := Response{
 			Result:     results,
 			TotalCount: count,
 		}
@@ -207,7 +207,7 @@ func getResults(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-type params struct {
+type Params struct {
 	searchQuery string
 	page        int
 	perPage     int
@@ -216,7 +216,7 @@ type params struct {
 	sortDir     string
 }
 
-func getUrlParams(query url.Values) params {
+func getUrlParams(query url.Values) Params {
 	searchQuery := query.Get("search_query")
 
 	page, err := strconv.Atoi(query.Get("page"))
@@ -254,7 +254,7 @@ Query parameters:
 	sort_dir=%s`,
 		searchQuery, page, perPage, categories, sortCol, sortDir)
 
-	return params{
+	return Params{
 		searchQuery: searchQuery,
 		page:        page,
 		perPage:     perPage,
