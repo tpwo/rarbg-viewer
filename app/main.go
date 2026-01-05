@@ -216,30 +216,30 @@ type params struct {
 	sortDir     string
 }
 
-func getUrlParams(q url.Values) params {
-	searchQuery := q.Get("search_query")
+func getUrlParams(query url.Values) params {
+	searchQuery := query.Get("search_query")
 
-	page, err := strconv.Atoi(q.Get("page"))
+	page, err := strconv.Atoi(query.Get("page"))
 	if err != nil || page < 1 {
 		page = 1
 	}
 
-	perPage, err := strconv.Atoi(q.Get("per_page"))
+	perPage, err := strconv.Atoi(query.Get("per_page"))
 	if err != nil || perPage < 1 || perPage > 100 {
 		perPage = 20
 	}
 
-	categories, ok := CATEGORY_MAP[q.Get("category")]
+	categories, ok := CATEGORY_MAP[query.Get("category")]
 	if !ok {
 		categories = nil
 	}
 
-	sortCol := q.Get("sort_col")
+	sortCol := query.Get("sort_col")
 	if sortCol == "" {
 		sortCol = "title"
 	}
 
-	sortDir := q.Get("sort_dir")
+	sortDir := query.Get("sort_dir")
 	if sortDir == "" {
 		sortDir = "asc"
 	}
@@ -275,10 +275,10 @@ Query parameters:
 // Resulting string is something like:
 //
 //	AND i.cat IN ("val1","val2","val3")
-func getCatFilter(c []string) string {
+func getCatFilter(cats []string) string {
 	var catFilter string
-	if c != nil {
-		catFilter = fmt.Sprintf(" AND i.cat IN (\"%s\")", strings.Join(c, "\",\""))
+	if cats != nil {
+		catFilter = fmt.Sprintf(" AND i.cat IN (\"%s\")", strings.Join(cats, "\",\""))
 	} else {
 		catFilter = ""
 	}
@@ -288,13 +288,13 @@ func getCatFilter(c []string) string {
 	return catFilter
 }
 
-func LogRequest(r *http.Request) {
-	log.Printf(`%s - "%s %s %s"`, r.RemoteAddr, r.Method, r.URL, r.Proto)
+func LogRequest(req *http.Request) {
+	log.Printf(`%s - "%s %s %s"`, req.RemoteAddr, req.Method, req.URL, req.Proto)
 }
 
 // Logs a message only if Debug is true
-func LogDebug(s string, args ...any) {
+func LogDebug(str string, args ...any) {
 	if Debug {
-		log.Printf(s, args...)
+		log.Printf(str, args...)
 	}
 }
