@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnSearch.addEventListener('click', () => {
     _STATE.query = searchbox.value;
     _STATE.category = categories.value;
+    _STATE.page = 1;
     fetchAndRender(_STATE);
   });
 
